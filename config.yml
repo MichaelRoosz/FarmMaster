@@ -1,0 +1,51 @@
+
+# Available wool colors:
+# white, orange, magenta, light_blue, yellow, lime, pink,
+# gray, silver, cyan, purple, blue, brown, green, red, black
+
+# default growtime (crops) is 7
+
+plants:
+
+  orange:
+    growtime: 7
+    evolveto:
+      type: pumpkin
+      data: 0
+
+  yellow:
+    growtime: 5
+    evolveto:
+      type: yellow_flower
+      data: 0
+
+  lime:
+    growtime: 7
+    evolveto:
+      type: sugar_cane_block
+      data: 0
+
+  magenta:
+    growtime: 7
+    evolveto:
+      type: red_mushroom
+      data: 0
+
+  brown:
+    growtime: 7
+    evolveto:
+      type: brown_mushroom
+      data: 0
+
+  green:
+    growtime: 7
+    evolveto:
+      type: cactus
+      data: 0
+
+  red:
+    growtime: 5
+    evolveto:
+      type: red_rose
+      data: 0
+      

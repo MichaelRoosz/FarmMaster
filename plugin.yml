@@ -1,0 +1,11 @@
+name: FarmMaster
+main: redecouverte.farmmaster.FarmMaster
+version: 1.4
+website: http://forums.bukkit.org
+authors:
+  - Redecouverte
+description: Advanced farming for Minecraft.
+commands:
+  fmreload:
+    description: Reloads FarmMaster configuration.
+    usage: /fmreload
