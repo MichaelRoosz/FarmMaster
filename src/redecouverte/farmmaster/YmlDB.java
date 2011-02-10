@@ -3,7 +3,9 @@ package redecouverte.farmmaster;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 import java.util.logging.Logger;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -14,13 +16,15 @@ public class YmlDB {
 
     private String folder;
     private Configuration confFile;
-    private ArrayList<PlantInfo> plantList;
+    private List<PlantInfo> plantList;
     private static final Logger logger = Logger.getLogger("Minecraft");
     private FarmMaster parent;
     private long lastSaveTick;
+    private final Object lock;
 
     public YmlDB(FarmMaster parent, String folder) {
 
+        this.lock = new Object();
         this.lastSaveTick = 0;
         this.folder = folder;
 
@@ -33,13 +37,13 @@ public class YmlDB {
         }
         this.confFile = new Configuration(configFile);
 
-        this.plantList = new ArrayList<PlantInfo>();
+        this.plantList = Collections.synchronizedList(new ArrayList<PlantInfo>());
         this.parent = parent;
 
         loadDB();
     }
 
-    public ArrayList<PlantInfo> getPlants() {
+    public List getPlants() {
         return this.plantList;
     }
 
@@ -117,102 +121,179 @@ public class YmlDB {
     }
 
     public void RegisterPlant(PlantInfo info) {
-        boolean found = false;
-        PlantInfo existingPlant = null;
+        synchronized (this.lock) {
+            boolean found = false;
+            PlantInfo existingPlant = null;
 
-        for (PlantInfo plant : this.plantList) {
-            if (plant.getX() != info.getX()) {
-                continue;
-            }
-            if (plant.getY() != info.getY()) {
-                continue;
-            }
-            if (plant.getZ() != info.getZ()) {
-                continue;
-            }
-            if (!plant.getWorld().equals(info.getWorld())) {
-                continue;
+            for (PlantInfo plant : this.plantList) {
+                if (plant.getX() != info.getX()) {
+                    continue;
+                }
+                if (plant.getY() != info.getY()) {
+                    continue;
+                }
+                if (plant.getZ() != info.getZ()) {
+                    continue;
+                }
+                if (!plant.getWorld().equals(info.getWorld())) {
+                    continue;
+                }
+
+                existingPlant = plant;
+                found = true;
+                break;
             }
 
-            existingPlant = plant;
-            found = true;
-            break;
+            if (found) {
+                this.plantList.remove(existingPlant);
+            }
+
+            this.plantList.add(info);
         }
+    }
 
-        if (found) {
-            this.plantList.remove(existingPlant);
+    public void UpdatePlant(Block b) {
+        synchronized (this.lock) {
+            long now = System.currentTimeMillis();
+            if (now - this.lastSaveTick > 60 * 1000) {
+                this.saveDB();
+                this.lastSaveTick = now;
+            }
+
+            Iterator<PlantInfo> i = this.plantList.iterator();
+            while (i.hasNext()) {
+
+                try {
+                    PlantInfo plant = i.next();
+
+                    if (plant.getWorldInst() == null) {
+                        for (World w : parent.getServer().getWorlds()) {
+                            if (w.getName().equals(plant.getWorld())) {
+                                plant.setWorldInst(w);
+                            }
+                        }
+                        if (plant.getWorldInst() == null) {
+
+                            i.remove();
+
+                            continue;
+                        }
+                    }
+
+                    if (!plant.equals(b)) {
+                        continue;
+                    }
+
+
+                    byte data = b.getData();
+
+                    if (data > 3 || data > plant.getTicks()) {
+                        if (data > 3) {
+                            b.setData((byte) 3);
+                        }
+
+                        plant.addTick();
+
+                        if (plant.isReady()) {
+
+                            if (plant.getMutatesTo() == Material.CACTUS.getId()) {
+                                Block b2 = b.getWorld().getBlockAt(b.getX(), b.getY() - 1, b.getZ());
+                                b2.setType(Material.SAND);
+                                b2.setData((byte) 0);
+                            }
+
+                            b.setTypeId(plant.getMutatesTo());
+                            b.setData((byte) plant.getMutatesToData());
+
+                            i.remove();
+
+                        }
+
+                    }
+
+                    break;
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+
+            }
         }
-
-        this.plantList.add(info);
     }
 
     public void UpdatePlants() {
-
-        long now = System.currentTimeMillis();
-        if (now - this.lastSaveTick > 60*1000) {
-            this.saveDB();
-            this.lastSaveTick = now;
-        }
-
-        Iterator<PlantInfo> i = this.plantList.iterator();
-        while (i.hasNext()) {
-
-            try {
-                PlantInfo plant = i.next();
-
-                if (plant.getWorldInst() == null) {
-                    for (World w : parent.getServer().getWorlds()) {
-                        if (w.getName().equals(plant.getWorld())) {
-                            plant.setWorldInst(w);
-                        }
-                    }
-                    if (plant.getWorldInst() == null) {
-                        i.remove();
-                        continue;
-                    }
-                }
-
-                Block b = plant.getWorldInst().getBlockAt(plant.getX(), plant.getY(), plant.getZ());
-                if (b == null) {
-                    continue;
-                }
-
-                if (b.getType() != Material.CROPS) {
-                    i.remove();
-                    continue;
-                }
-
-                byte data = b.getData();
-
-                if (data > 3 || data > plant.getTicks()) {
-                    if (data > 3) {
-                        b.setData((byte) 3);
-                    }
-
-                    plant.addTick();
-
-                    if (plant.isReady()) {
-
-                        if (plant.getMutatesTo() == Material.CACTUS.getId()) {
-                            Block b2 = b.getWorld().getBlockAt(b.getX(), b.getY() - 1, b.getZ());
-                            b2.setType(Material.SAND);
-                            b2.setData((byte) 0);
-                        }
-
-                        b.setTypeId(plant.getMutatesTo());
-                        b.setData((byte) plant.getMutatesToData());
-
-                        i.remove();
-                    }
-
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
+        synchronized (this.lock) {
+            long now = System.currentTimeMillis();
+            if (now - this.lastSaveTick > 60 * 1000) {
+                this.saveDB();
+                this.lastSaveTick = now;
             }
 
+            Iterator<PlantInfo> i = this.plantList.iterator();
+            while (i.hasNext()) {
 
+                try {
+                    PlantInfo plant = i.next();
+
+                    if (plant.getWorldInst() == null) {
+                        for (World w : parent.getServer().getWorlds()) {
+                            if (w.getName().equals(plant.getWorld())) {
+                                plant.setWorldInst(w);
+                            }
+                        }
+                        if (plant.getWorldInst() == null) {
+
+                            i.remove();
+
+                            continue;
+                        }
+                    }
+
+                    Block b = plant.getWorldInst().getBlockAt(plant.getX(), plant.getY(), plant.getZ());
+                    if (b == null) {
+                        continue;
+                    }
+
+                    if (b.getType() != Material.CROPS) {
+
+                        i.remove();
+
+                        continue;
+                    }
+
+                    byte data = b.getData();
+
+                    if (data > 3 || data > plant.getTicks()) {
+                        if (data > 3) {
+                            b.setData((byte) 3);
+                        }
+
+                        plant.addTick();
+
+                        if (plant.isReady()) {
+
+                            if (plant.getMutatesTo() == Material.CACTUS.getId()) {
+                                Block b2 = b.getWorld().getBlockAt(b.getX(), b.getY() - 1, b.getZ());
+                                b2.setType(Material.SAND);
+                                b2.setData((byte) 0);
+                            }
+
+                            b.setTypeId(plant.getMutatesTo());
+                            b.setData((byte) plant.getMutatesToData());
+
+                            i.remove();
+
+                        }
+
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+
+            }
         }
-
     }
 
     private static Integer castInt(Object o) {

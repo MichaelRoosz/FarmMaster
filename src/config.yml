@@ -1,11 +1,71 @@
 
+# possible values for mode: natural, wool, both
+# wool: choose which plant to grow by touching planted seeds with colored wool
+# natural: plants can be planted with their normal item (-> plant yellow flowers with a yellow flower),
+# farmed plants will have a change to drop 1-2 of its kind
+mode: both
+
+
+# IMPORTANT:
+# all block/item names have to be in lower case
+#
+
+#natural mode setup
+# default growtime (crops) is 7
+
+naturalplants:
+
+  pumpkin:
+    growtime: 7
+    evolveto:
+      type: pumpkin
+      data: 0
+
+  yellow_flower:
+    growtime: 5
+    evolveto:
+      type: yellow_flower
+      data: 0
+
+  sugar_cane:
+    growtime: 7
+    evolveto:
+      type: sugar_cane_block
+      data: 0
+
+  red_mushroom:
+    growtime: 7
+    evolveto:
+      type: red_mushroom
+      data: 0
+
+  brown_mushroom:
+    growtime: 7
+    evolveto:
+      type: brown_mushroom
+      data: 0
+
+  cactus:
+    growtime: 7
+    evolveto:
+      type: cactus
+      data: 0
+
+  red_rose:
+    growtime: 5
+    evolveto:
+      type: red_rose
+      data: 0
+
+
+#wool mode setup
 # Available wool colors:
 # white, orange, magenta, light_blue, yellow, lime, pink,
 # gray, silver, cyan, purple, blue, brown, green, red, black
 
 # default growtime (crops) is 7
 
-plants:
+woolplants:
 
   orange:
     growtime: 7

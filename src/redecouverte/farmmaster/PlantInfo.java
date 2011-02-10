@@ -1,6 +1,7 @@
 package redecouverte.farmmaster;
 
 import org.bukkit.World;
+import org.bukkit.block.Block;
 
 
 
@@ -87,5 +88,27 @@ public class PlantInfo {
     public boolean isReady()
     {
         return this.ticks >= this.targetTicks;
+    }
+
+    public boolean equals(Block b)
+    {
+        if(this.x != b.getX())
+            return false;
+        if(this.y != b.getY())
+            return false;
+        if(this.z != b.getZ())
+            return false;
+
+        if(this.worldInst != null && this.worldInst.getId() != b.getWorld().getId())
+        {
+            return false;
+        }
+
+        if(this.worldInst == null && !this.world.equals(b.getWorld().getName()))
+        {
+            return false;
+        }
+
+        return true;
     }
 }
