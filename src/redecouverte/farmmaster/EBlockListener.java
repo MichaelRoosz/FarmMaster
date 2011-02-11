@@ -96,24 +96,27 @@ public class EBlockListener extends BlockListener {
                         Location l = b.getLocation();
                         World w = l.getWorld();
                         int curX = l.getBlockX();
+                        int curY = l.getBlockY();
                         int curZ = l.getBlockZ();
                         int foundCount = 0;
                         for (int x = curX - 1; x <= curX + 1 && foundCount < 2; x++) {
-                            for (int z = curZ - 1; z <= curZ + 1 && foundCount < 2; z++) {
-                                Block sb = w.getBlockAt(x, w.getHighestBlockYAt(x, z) - 1, z);
-                                switch (sb.getType()) {
-                                    case WATER:
-                                    case DIRT:
-                                    case GRASS:
-                                    case SOIL:
-                                    case STATIONARY_WATER:
-                                        foundCount++;
-                                        if (foundCount > 1) {
-                                            b.setType(Material.DIRT);
-                                        }
-                                        break;
-                                    default:
-                                        break;
+                            for (int y = curY; y < 126 && y <= curY + 1 && foundCount < 2; y++) {
+                                for (int z = curZ - 1; z <= curZ + 1 && foundCount < 2; z++) {
+                                    Block sb = w.getBlockAt(x, y, z);
+                                    switch (sb.getType()) {
+                                        case WATER:
+                                        case DIRT:
+                                        case GRASS:
+                                        case SOIL:
+                                        case STATIONARY_WATER:
+                                            foundCount++;
+                                            if (foundCount > 1) {
+                                                b.setType(Material.DIRT);
+                                            }
+                                            break;
+                                        default:
+                                            break;
+                                    }
                                 }
                             }
                         }
