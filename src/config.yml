@@ -5,6 +5,9 @@
 # farmed plants will have a change to drop 1-2 of its kind
 mode: both
 
+# set sandtilling to true, to enable converting sand to dirt with a hoe
+# set to false to disable
+sandtilling : true
 
 # IMPORTANT:
 # all block/item names have to be in lower case

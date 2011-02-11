@@ -28,6 +28,7 @@ public class FarmMaster extends JavaPlugin {
     private Configuration config;
     private boolean bNaturalMode;
     private boolean bWoolMode;
+    private boolean bSandTilling;
 
     public FarmMaster(PluginLoader pluginLoader, Server instance, PluginDescriptionFile desc, File folder, File plugin, ClassLoader cLoader) {
 
@@ -42,6 +43,7 @@ public class FarmMaster extends JavaPlugin {
 
         this.bNaturalMode = false;
         this.bWoolMode = false;
+        this.bSandTilling = false;
     }
 
     private void writeConfigFile(File configFile) {
@@ -103,11 +105,24 @@ public class FarmMaster extends JavaPlugin {
             } else {
                 this.bWoolMode = false;
             }
+
+            try {
+                this.bSandTilling = this.config.getBoolean("sandtilling", false);
+            } catch (Exception e) {
+
+                this.bSandTilling = false;
+            }
+
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
+    public boolean sandTilling()
+    {
+        return this.bSandTilling;
+    }
+    
     public boolean naturalMode()
     {
         return this.bNaturalMode;

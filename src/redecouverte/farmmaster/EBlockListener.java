@@ -3,7 +3,9 @@ package redecouverte.farmmaster;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockDamageLevel;
 import org.bukkit.entity.Player;
@@ -42,6 +44,35 @@ public class EBlockListener extends BlockListener {
         return u.getType() == Material.SOIL;
     }
 
+    public boolean isHoeDestroyed(Material hoe, short uses) {
+        int max = 0;
+        switch (hoe) {
+            case DIAMOND_HOE:
+                max = 1562;
+                break;
+            case IRON_HOE:
+                max = 251;
+                break;
+            case GOLD_HOE:
+                max = 33;
+                break;
+            case STONE_HOE:
+                max = 132;
+                break;
+            case WOOD_HOE:
+                max = 60;
+                break;
+            default:
+                return false;
+        }
+
+        if (uses >= max) {
+            return true;
+        }
+
+        return false;
+    }
+
     @Override
     public void onBlockDamage(BlockDamageEvent event) {
 
@@ -52,6 +83,54 @@ public class EBlockListener extends BlockListener {
             }
 
             Block b = event.getBlock();
+
+            if (parent.sandTilling() && b.getType() == Material.SAND) {
+                ItemStack is = event.getPlayer().getInventory().getItemInHand();
+                switch (is.getType()) {
+                    case DIAMOND_HOE:
+                    case IRON_HOE:
+                    case GOLD_HOE:
+                    case STONE_HOE:
+                    case WOOD_HOE:
+
+                        Location l = b.getLocation();
+                        World w = l.getWorld();
+                        int curX = l.getBlockX();
+                        int curZ = l.getBlockZ();
+                        int foundCount = 0;
+                        for (int x = curX - 1; x <= curX + 1 && foundCount < 2; x++) {
+                            for (int z = curZ - 1; z <= curZ + 1 && foundCount < 2; z++) {
+                                Block sb = w.getBlockAt(x, w.getHighestBlockYAt(x, z) - 1, z);
+                                switch (sb.getType()) {
+                                    case WATER:
+                                    case DIRT:
+                                    case GRASS:
+                                    case SOIL:
+                                    case STATIONARY_WATER:
+                                        foundCount++;
+                                        if (foundCount > 1) {
+                                            b.setType(Material.DIRT);
+                                        }
+                                        break;
+                                    default:
+                                        break;
+                                }
+                            }
+                        }
+
+                        if (foundCount > 1) {
+                            is.setDurability((short) (is.getDurability() + 1));
+                            if (this.isHoeDestroyed(is.getType(), is.getDurability())) {
+                                event.getPlayer().getInventory().removeItem(is);
+                            }
+                        }
+                        break;
+
+                    default:
+                        break;
+                }
+            }
+
 
             if (parent.naturalMode() || parent.woolMode()) {
                 if (event.getDamageLevel() == BlockDamageLevel.BROKEN) {
@@ -204,8 +283,7 @@ public class EBlockListener extends BlockListener {
                 if (b.getType() == Material.SOIL) {
 
                     int y = b.getY() + 1;
-                    if(y > 126)
-                    {
+                    if (y > 126) {
                         return;
                     }
 
