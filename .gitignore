@@ -1,11 +1,7 @@
 
 /build
 /dist
-/nbproject
+/nbproject/private
 /release
 /store
 /test
-
-
-/build.xml
-/manifest.mf
