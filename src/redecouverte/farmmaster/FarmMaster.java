@@ -30,20 +30,7 @@ public class FarmMaster extends JavaPlugin {
     private boolean bWoolMode;
     private boolean bSandTilling;
 
-    public FarmMaster(PluginLoader pluginLoader, Server instance, PluginDescriptionFile desc, File folder, File plugin, ClassLoader cLoader) {
-
-        super(pluginLoader, instance, desc, folder, plugin, cLoader);
-
-        folder.mkdirs();
-
-        File oldFile = new File(getDataFolder(), "plants.db");
-        if (oldFile.exists()) {
-            oldFile.delete();
-        }
-
-        this.bNaturalMode = false;
-        this.bWoolMode = false;
-        this.bSandTilling = false;
+    public FarmMaster() {
     }
 
     private void writeConfigFile(File configFile) {
@@ -134,6 +121,17 @@ public class FarmMaster extends JavaPlugin {
     }
 
     public void onEnable() {
+        getDataFolder().mkdirs();
+
+        File oldFile = new File(getDataFolder(), "plants.db");
+        if (oldFile.exists()) {
+            oldFile.delete();
+        }
+
+        this.bNaturalMode = false;
+        this.bWoolMode = false;
+        this.bSandTilling = false;
+
         try {
 
             this.loadConfig();
